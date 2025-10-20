@@ -26,10 +26,14 @@ def getData(clinical_group="BL", path="FORD-0101-21ML+ DATA TABLES_CSF (METADATA
     patientData.drop("COHORT", axis=1, inplace=True)
     patientData.drop("PPMI_CLINICAL_EVENT", axis=1, inplace=True)
 
+    #Drop diet related metabolites
+    dropMetabolites=[849, 100000445, 100006361, 100004634, 100001605]
+    df.drop(columns=dropMetabolites, axis=1, inplace=True)
+
+    
     df=patientData.join(df, on="PARENT_SAMPLE_NAME", how="inner")
     df.columns=df.columns.astype(str)
-
-
+    
     return df
 
 #Store the data to be used in the functions below
@@ -61,7 +65,7 @@ def displayMissing(data, thresh, display):
 #           
 #   Returns: newX (ndarray) - the cleaned information
 ############################################
-def cleanData(data, thresh=0.5, n=5):
+def cleanData(data, thresh=0.5, n=6):
     data.dropna(axis=1, thresh=(len(data)-(thresh*(len(data)))), inplace=True)
     X=data.drop(data.columns[0:1], axis=1)
     Y=data.PPMI_COHORT
@@ -100,16 +104,15 @@ def getXY(data=dataset):
 
     data=normalizeData()
     X=data.drop(data.columns[0:1], axis=1)
-    Y=data.PPMI_COHORT
+    Y= data.PPMI_COHORT
 
     Y=le.fit_transform(Y)
-    X = cleanData(data, n=4)
+    X = cleanData(data)
+    X=pd.DataFrame(X)
     return X,Y
 
-
-X,Y= getXY()
-dataframe=pd.DataFrame(X)
-dataframe.to_csv("cleanData.csv", header=True)
-
-
-
+#"""
+X,Y = getXY()
+X['PPMI_COHORT']=Y
+X.to_csv("cleanData.csv")
+#"""
